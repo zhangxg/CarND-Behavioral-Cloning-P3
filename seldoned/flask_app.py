@@ -1,44 +1,27 @@
-import base64
 import json
-from io import BytesIO
 
-import numpy as np
-from PIL import Image
 from flask import Flask
 from flask import request
-from keras.models import load_model
 
-from seldoned.tools import SimplePIController
+from seldoned.UdaDrive import UdaDrive
 
 app = Flask(__name__)
 
-
-controller = SimplePIController(0.1, 0.002)
-
-model = None
-model_name = "model.h5"
+driver = None
 
 
 @app.route("/predict", methods=['POST'])
-def hello():
-  # return drive.predict(request.values["data"], None)
-
-  # model = load_model(model_name)
-  data = request.json
-  speed = data["speed"]
-  imgString = data["image"]
-  image = Image.open(BytesIO(base64.b64decode(imgString)))
-  image_array = np.asarray(image)
-
-  steering_angle = float(model.predict(image_array[None, :, :, :], batch_size=1))
-
-  throttle = controller.update(float(speed))
+def predict():
+  steering_angle, throttle = driver.predict(request.json, None)
   return json.dumps((steering_angle, throttle))
-  # return json.dumps(drive.predict(json.dumps(request.json), None))
 
 
 if __name__ == "__main__":
-  model = load_model(model_name)
-  model._make_predict_function()
-  # drive = driver.UdaDrive()
+  driver = UdaDrive()
   app.run(host='localhost', port=1234)
+
+
+# has error:
+# ValueError: Tensor Tensor("dense_30/BiasAdd:0", shape=(?, 1), dtype=float32) is not an element of this graph.
+# see: https://github.com/keras-team/keras/issues/2397#issuecomment-212287164
+# fix see: https://github.com/keras-team/keras/issues/2397#issuecomment-306687500

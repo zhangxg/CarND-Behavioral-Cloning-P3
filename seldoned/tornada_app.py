@@ -11,9 +11,9 @@ driver = None
 class MainHandler(tornado.web.RequestHandler):
   def post(self, *args, **kwargs):
     # post with request
-    data = tornado.escape.json_decode(self.request.body_arguments['data'][0])
+    # data = tornado.escape.json_decode(self.request.body_arguments['data'][0])
     # post with postman
-    # data = tornado.escape.json_decode(self.request.body)
+    data = tornado.escape.json_decode(self.request.body)
     steering_angle, throttle = driver.predict(data, None)
     self.write(json.dumps({"steering_angle": steering_angle, "throttle": throttle}))
 
