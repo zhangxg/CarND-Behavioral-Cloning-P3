@@ -1,15 +1,14 @@
-import numpy as np
-import cv2
 import csv
 from glob import glob
-import time
-import pickle
+
+import cv2
+import numpy as np
+from keras.callbacks import EarlyStopping, ModelCheckpoint
+from keras.layers import Activation, Dense, Convolution2D, MaxPooling2D, Flatten, Lambda, Cropping2D, Dropout
+from keras.models import Sequential
 from sklearn.model_selection import train_test_split
 from sklearn.utils import shuffle
-from keras.models import Sequential
-from keras.layers import Activation, Dense, Convolution2D, MaxPooling2D, Flatten, Lambda, Cropping2D, Dropout
-from keras.optimizers import Adam
-from keras.callbacks import EarlyStopping, ModelCheckpoint
+
 
 # load csv
 def load_and_split_data(data_dir, test_size=0.2, file_names=None, load_three=False, steer_left=0.08, steer_right=0.04):
