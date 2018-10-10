@@ -1,3 +1,12 @@
+# -*- coding: utf-8 -*-
+
+"""
+a websocket proxy,
+this is a limitation of the simulator which can not listen to other machine.
+start this with the simulator in the same machine, the proxy will connect to other remote server.
+
+"""
+
 import json
 
 import eventlet.wsgi
@@ -8,7 +17,7 @@ from flask import Flask
 sio = socketio.Server()
 app = Flask(__name__)
 
-
+# the remote server address
 url = "http://localhost:8888/predict"
 
 

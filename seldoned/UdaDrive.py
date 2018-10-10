@@ -8,18 +8,16 @@ import tensorflow as tf
 
 from seldoned.tools import SimplePIController
 
-model_name = "model.h5"
-
 
 class UdaDrive(object):
 
-  def __init__(self):
+  def __init__(self, model_name):
     self.uda_model = load_model(model_name)
     self.graph = tf.get_default_graph()
     self.controller = SimplePIController(0.1, 0.002)
     self.controller.set_desired(10)
 
-  def predict(self, data, feature_names):
+  def predict(self, data):
     speed = data["speed"]
     imgString = data["image"]
     image = Image.open(BytesIO(base64.b64decode(imgString)))
