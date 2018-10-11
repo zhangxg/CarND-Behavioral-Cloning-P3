@@ -68,7 +68,7 @@ def load_and_split_data(data_dir, test_size=0.2, file_names=None, load_three=Fal
         return samples, []
 
 
-def load_with_pandas(csv_files, test_size=0.2):
+def load_with_pandas(csv_files, test_size=0.2, steer_left=None, steer_right=None):
 
   def get_image_name(row, col_name):
     return row[row.index(col_name):]
@@ -83,8 +83,20 @@ def load_with_pandas(csv_files, test_size=0.2):
     return df
 
   drive_log = pd.concat([parse_csv(f) for f in csv_files])
-  print("driving-log length {}.".format(len(drive_log)))
-  samples = np.array(drive_log.loc[:, ["center", "steer"]])
+
+  samples_center = np.array(drive_log.loc[:, ["center", "steer"]])
+  samples = samples_center
+  if steer_left is not None:
+    drive_log["steer_left"] = drive_log["steer"] + steer_left
+    samples_left = np.array(drive_log.loc[:, ["left", "steer_left"]])
+    samples = np.concatenate((samples, samples_left))
+
+  if steer_right is not None:
+    drive_log["steer_right"] = drive_log["steer"] - steer_right
+    samples_right = np.array(drive_log.loc[:, ["right", "steer_right"]])
+    samples = np.concatenate((samples, samples_right))
+
+  print("driving-log length {}, sample length {}.".format(len(drive_log), len(samples)))
   train_samples, val_samples = train_test_split(samples, test_size=test_size)
   print("the train and test are split by {}".format(test_size))
   return train_samples, val_samples
@@ -178,14 +190,14 @@ def train(run_id, train_samples, val_samples):
                       validation_data=validation_generator, nb_val_samples=len(validation_samples),
                       nb_epoch=20, callbacks=[check_pointer, early_stopping])
 
-  model.save("model_{}.h5".format(run_id))
+  model.save(run_id)
 
 
 if __name__ == "__main__":
-
   training_time = datetime.strftime(datetime.now(), "%Y-%m-%d_%H:%M:%S")
-  tracks = ["track1", "track1-counter-clock"]
+  # tracks = ["track1", "track1-counter-clock"]
+  tracks = ["track1"]
   csv_files = ["/tmp/nvidia_sd_images/{}/driving_log.csv".format(t) for t in tracks]
-  train_samples, validation_samples = load_with_pandas(csv_files)
-  run_id = "model_{}_{}.h5".format("track1_with_counter_clock", training_time)
+  train_samples, validation_samples = load_with_pandas(csv_files, steer_left=0.08, steer_right=0.04)
+  run_id = "model_{}_{}.h5".format("using_left_right_camera", training_time)
   train(run_id, train_samples, validation_samples)
