@@ -11,6 +11,8 @@ from keras.layers import Activation, Dense, Convolution2D, MaxPooling2D, Flatten
 from keras.models import Sequential
 from sklearn.model_selection import train_test_split
 from sklearn.utils import shuffle
+import tensorflow as tf
+from keras.utils import multi_gpu_model
 
 
 # load csv
@@ -178,15 +180,16 @@ def network(dropout_ratio=0.5):
 
 def train(run_id, train_samples, val_samples):
   # the training procedure
-  model = network(dropout_ratio=0.25)
-
   train_generator = generator(train_samples, batch_size=32)
   validation_generator = generator(validation_samples, batch_size=32)
-
-  model.compile(loss='mse', optimizer="adam")
   check_pointer = ModelCheckpoint(filepath="./weights.{epoch:02d}-{val_loss:.2f}.h5", verbose=1, save_best_only=True)
   early_stopping = EarlyStopping(monitor='val_loss', min_delta=0, patience=2, verbose=1, mode='auto')
 
+  with tf.device("/cpu:0"):
+    model = network(dropout_ratio=0.25)
+
+  model = multi_gpu_model(model, gpus=2)
+  model.compile(loss='mse', optimizer="adam")
   model.fit_generator(train_generator, samples_per_epoch=len(train_samples),
                       validation_data=validation_generator, nb_val_samples=len(validation_samples),
                       nb_epoch=20, callbacks=[check_pointer, early_stopping])
