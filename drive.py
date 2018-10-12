@@ -118,10 +118,12 @@ if __name__ == '__main__':
               ', but the model was built using ', model_version)
 
     # model_name = "model.h5"
-    model_name = "model_track1_2018-10-10_10:31:46.h5"
-    # model_name = "../model_track2_2018-10-10_11:18:49.h5"
+    # model_name = "model_track1_2018-10-10_10:31:46.h5"
+    # model_name = "model_track2_2018-10-10_11:18:49.h5"
     # model_name = "model_model_track1_with_counter_clock_2018-10-10_12:16:01.h5.h5"
     # model_name = "../model_model_using_left_right_camera_2018-10-11_15:13:31.h5.h5"
+    model_name = "model_track2_using_left_right_camera_2018-10-12_10:27:42.h5"
+    # model_name = "model_track2_using_left_right_camera_adjusted_2018-10-12_11:56:41.h5"
     # model = load_model(args.model)
     model = load_model(model_name)
 

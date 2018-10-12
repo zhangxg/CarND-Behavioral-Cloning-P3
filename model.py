@@ -82,17 +82,25 @@ def load_with_pandas(csv_files, test_size=0.2, steer_left=None, steer_right=None
     df["left"] = image_dir + df.left.apply(lambda x: get_image_name(x, "left"))
     return df
 
+  def adjust_left(steer_center):
+    return steer_center + steer_left
+    # return steer_center + steer_left if steer_center < 0 else steer_center - steer_right
+
+  def adjust_right(steer_center):
+    return steer_center - steer_right
+    # return steer_center - steer_right if steer_center < 0 else steer_center + steer_left
+
   drive_log = pd.concat([parse_csv(f) for f in csv_files])
 
   samples_center = np.array(drive_log.loc[:, ["center", "steer"]])
   samples = samples_center
   if steer_left is not None:
-    drive_log["steer_left"] = drive_log["steer"] + steer_left
+    drive_log["steer_left"] = drive_log["steer"].apply(adjust_left)
     samples_left = np.array(drive_log.loc[:, ["left", "steer_left"]])
     samples = np.concatenate((samples, samples_left))
 
   if steer_right is not None:
-    drive_log["steer_right"] = drive_log["steer"] - steer_right
+    drive_log["steer_right"] = drive_log["steer"].apply(adjust_right)
     samples_right = np.array(drive_log.loc[:, ["right", "steer_right"]])
     samples = np.concatenate((samples, samples_right))
 
@@ -172,13 +180,6 @@ def train(run_id, train_samples, val_samples):
   # the training procedure
   model = network(dropout_ratio=0.25)
 
-  # train_samples, validation_samples = load_and_split_data('./data/',
-  #                                                         file_names=["0314", "0319-2"],
-  #                                                         load_three=True,
-  #                                                         steer_left=0.04,
-  #                                                         steer_right=0.04
-  #                                                        )
-
   train_generator = generator(train_samples, batch_size=32)
   validation_generator = generator(validation_samples, batch_size=32)
 
@@ -190,14 +191,16 @@ def train(run_id, train_samples, val_samples):
                       validation_data=validation_generator, nb_val_samples=len(validation_samples),
                       nb_epoch=20, callbacks=[check_pointer, early_stopping])
 
-  model.save(run_id)
+  model.save("model_{}.h5".format(run_id))
 
 
 if __name__ == "__main__":
   training_time = datetime.strftime(datetime.now(), "%Y-%m-%d_%H:%M:%S")
   # tracks = ["track1", "track1-counter-clock"]
-  tracks = ["track1"]
+  # tracks = ["track1"]
+  tracks = ["track2"]
   csv_files = ["/tmp/nvidia_sd_images/{}/driving_log.csv".format(t) for t in tracks]
-  train_samples, validation_samples = load_with_pandas(csv_files, steer_left=0.08, steer_right=0.04)
-  run_id = "model_{}_{}.h5".format("using_left_right_camera", training_time)
+  # train_samples, validation_samples = load_with_pandas(csv_files, steer_left=0.08, steer_right=0.04)
+  train_samples, validation_samples = load_with_pandas(csv_files, steer_left=0.04, steer_right=0.04)
+  run_id = "{}_{}".format("track2_using_left_right_camera_adjusted", training_time)
   train(run_id, train_samples, validation_samples)
