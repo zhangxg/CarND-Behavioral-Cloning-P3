@@ -180,16 +180,21 @@ def network(dropout_ratio=0.5):
 
 def train(run_id, train_samples, val_samples):
   # the training procedure
-  batch_size = 256
+  batch_size = 32
   train_generator = generator(train_samples, batch_size=batch_size)
   validation_generator = generator(validation_samples, batch_size=batch_size)
   check_pointer = ModelCheckpoint(filepath="./weights.{epoch:02d}-{val_loss:.2f}.h5", verbose=1, save_best_only=True)
   early_stopping = EarlyStopping(monitor='val_loss', min_delta=0, patience=2, verbose=1, mode='auto')
 
-  with tf.device("/cpu:0"):
-    model = network(dropout_ratio=0.25)
+  # # try with multiple-gpu
+  # with tf.device("/cpu:0"):
+  #   model = network(dropout_ratio=0.25)
+  #
+  # model = multi_gpu_model(model, gpus=1)
 
-  model = multi_gpu_model(model, gpus=2)
+  # train on one gpu
+  model = network(dropout_ratio=0.25)
+
   model.compile(loss='mse', optimizer="adam")
   model.fit_generator(train_generator, samples_per_epoch=len(train_samples),
                       validation_data=validation_generator, nb_val_samples=len(validation_samples),
