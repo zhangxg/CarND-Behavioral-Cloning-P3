@@ -180,7 +180,7 @@ def network(dropout_ratio=0.5):
 
 def train(run_id, train_samples, val_samples):
   # the training procedure
-  batch_size = 32
+  batch_size = 64
 
   train_generator = generator(train_samples, batch_size=batch_size)
   validation_generator = generator(val_samples, batch_size=batch_size)
@@ -194,14 +194,14 @@ def train(run_id, train_samples, val_samples):
                             write_images=True)
   # tensorboard.validation_data = val_data
 
-  # # try with multiple-gpu
-  # with tf.device("/cpu:0"):
-  #   model = network(dropout_ratio=0.25)
-  #
-  # model = multi_gpu_model(model, gpus=1)
+  # try with multiple-gpu
+  with tf.device("/cpu:0"):
+    model = network(dropout_ratio=0.25)
+
+  model = multi_gpu_model(model, gpus=4)
 
   # train on one gpu
-  model = network(dropout_ratio=0.25)
+  # model = network(dropout_ratio=0.25)
 
   model.compile(loss='mse', optimizer="adam")
   model.fit_generator(train_generator, steps_per_epoch=int(len(train_samples) / batch_size), epochs=20,
