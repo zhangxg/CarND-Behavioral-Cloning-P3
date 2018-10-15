@@ -201,9 +201,9 @@ def train(run_id, train_samples, val_samples):
   model = network(dropout_ratio=0.25)
 
   model.compile(loss='mse', optimizer="adam")
-  model.fit_generator(train_generator, samples_per_epoch=len(train_samples),
-                      validation_data=validation_generator, nb_val_samples=len(validation_samples),
-                      nb_epoch=20, callbacks=[check_pointer, early_stopping, tensorboard])
+  model.fit_generator(train_generator, steps_per_epoch=int(len(train_samples) / batch_size), epochs=20,
+                      validation_data=validation_generator, validation_steps=len(validation_samples),
+                      callbacks=[check_pointer, early_stopping, tensorboard])
 
   model.save("model_{}.h5".format(run_id))
 
