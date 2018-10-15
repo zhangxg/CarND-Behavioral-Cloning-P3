@@ -15,7 +15,6 @@ from sklearn.utils import shuffle
 import tensorflow as tf
 from keras.utils import multi_gpu_model
 
-
 # load csv
 def load_and_split_data(data_dir, test_size=0.2, file_names=None, load_three=False, steer_left=0.08, steer_right=0.04):
     """
@@ -94,8 +93,6 @@ def load_with_pandas(csv_files, test_size=0.2, steer_left=None, steer_right=None
     # return steer_center - steer_right if steer_center < 0 else steer_center + steer_left
 
   drive_log = pd.concat([parse_csv(f) for f in csv_files])
-
-  drive_log = drive_log[:100]
 
   samples_center = np.array(drive_log.loc[:, ["center", "steer"]])
   samples = samples_center
@@ -184,12 +181,18 @@ def network(dropout_ratio=0.5):
 def train(run_id, train_samples, val_samples):
   # the training procedure
   batch_size = 32
+
   train_generator = generator(train_samples, batch_size=batch_size)
-  validation_generator = generator(validation_samples, batch_size=batch_size)
+  validation_generator = generator(val_samples, batch_size=batch_size)
   check_pointer = ModelCheckpoint(filepath="./weights.{epoch:02d}-{val_loss:.2f}.h5", verbose=1, save_best_only=True)
   early_stopping = EarlyStopping(monitor='val_loss', min_delta=0, patience=2, verbose=1, mode='auto')
-  tensorboard = TensorBoard(log_dir="/tmp/keras_logs/{}".format(run_id), write_graph=True, write_grads=True,
+
+  # fixme: not yet ready to write the gradients, set the histogram_freq back to zero
+  # error: If printing histograms, validation_data must be provided, and cannot be a generator.
+  tensorboard = TensorBoard(log_dir="/tmp/keras_logs/{}".format(run_id), histogram_freq=0, write_graph=True,
+                            write_grads=True,
                             write_images=True)
+  # tensorboard.validation_data = val_data
 
   # # try with multiple-gpu
   # with tf.device("/cpu:0"):
@@ -209,7 +212,8 @@ def train(run_id, train_samples, val_samples):
 
 
 if __name__ == "__main__":
-  training_time = datetime.strftime(datetime.now(), "%Y-%m-%d_%H:%M:%S")
+  # training_time = datetime.strftime(datetime.now(), "%Y-%m-%d_%H:%M:%S")
+  training_time = datetime.strftime(datetime.now(), "%M-%S_%Y-%m-%d-%H")
   # tracks = ["track1", "track1-counter-clock"]
   # tracks = ["track1"]
   tracks = ["track2"]
