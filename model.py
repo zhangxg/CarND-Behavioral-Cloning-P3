@@ -201,11 +201,11 @@ def train(run_id, train_samples, val_samples):
   model = multi_gpu_model(model, gpus=4)
 
   # train on one gpu
-  # model = network(dropout_ratio=0.25)
+  model = network(dropout_ratio=0.25)
 
   model.compile(loss='mse', optimizer="adam")
   model.fit_generator(train_generator, steps_per_epoch=int(len(train_samples) / batch_size), epochs=20,
-                      validation_data=validation_generator, validation_steps=len(validation_samples),
+                      validation_data=validation_generator, validation_steps=int(len(validation_samples) / batch_size),
                       callbacks=[check_pointer, early_stopping, tensorboard])
 
   model.save("model_{}.h5".format(run_id))
